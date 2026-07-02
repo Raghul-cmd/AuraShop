@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart - AuraShop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+  <!-- Sticky Header -->
+  <header></header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Shopping Cart</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &nbsp;/&nbsp; <span>Shopping Cart</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cart Content Section -->
+  <section class="section">
+    <div class="container">
+
+      <div class="cart-layout" id="cart-container-layout">
+        <!-- Rendered dynamically -->
+        <div class="spinner-wrapper" style="grid-column: 1/-1;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Clean Footer -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    let activeCoupon = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCartView();
+    });
+
+    document.addEventListener('cartUpdated', () => {
+      renderCartView();
+    });
+
+    function renderCartView() {
+      const layout = document.getElementById('cart-container-layout');
+      const cart = Cart.getCart();
+
+      if (cart.length === 0) {
+        layout.style.display = 'block';
+        layout.innerHTML = `
+          <div class="flex-center" style="flex-direction: column; padding: 80px 0; background-color: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border);">
+            <i class="fas fa-shopping-basket" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 25px;"></i>
+            <h2>Your Cart is Empty</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 30px;">Add some curated products to start styling.</p>
+            <a href="products.html" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Return to Shop</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Restore layout grid
+      layout.style.display = 'grid';
+
+      // Totals calculation
+      const totals = Cart.getTotals(activeCoupon);
+
+      // Render Left panel: Cart items list
+      let itemsHtml = `
+        <div class="cart-table-card">
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Cart Selections</h3>
+      `;
+
+      itemsHtml += cart.map(item => {
+        const discountedPrice = (item.price * (1 - item.discount / 100)).toFixed(2);
+        return `
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <img src="${item.image_url}" alt="${item.name}" class="cart-item-img">
+              <div class="cart-item-details">
+                <h4>${item.name}</h4>
+                <p>Original Price: $${parseFloat(item.price).toFixed(2)}</p>
+                ${item.discount > 0 ? `<p style="color: var(--danger); font-weight:600;">Discount: -${Math.round(item.discount)}%</p>` : ''}
+              </div>
+            </div>
+            <div class="flex-center" style="gap: 20px;">
+              <div class="qty-input" style="height: 36px;">
+                <button onclick="Cart.updateQuantity(${item.id}, ${item.quantity - 1})" style="width:30px; height: 100%;">-</button>
+                <input type="number" value="${item.quantity}" style="width: 35px;" readonly>
+                <button onclick="Cart.updateQuantity(${item.id}, ${item.quantity + 1})" style="width:30px; height: 100%;">+</button>
+              </div>
+              <div style="font-weight: 700; width: 80px; text-align: right;">$${(discountedPrice * item.quantity).toFixed(2)}</div>
+              <button onclick="Cart.removeFromCart(${item.id})" class="btn-icon" style="border:none; color: var(--danger); background: transparent;" title="Remove Item">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      itemsHtml += `
+          <div style="margin-top: 20px; display: flex; justify-content: space-between;">
+            <a href="products.html" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Continue Shopping</a>
+            <button onclick="Cart.clearCart()" class="btn btn-secondary btn-sm" style="color: var(--danger); border-color: var(--danger);"><i class="fas fa-trash"></i> Empty Cart</button>
+          </div>
+        </div>
+      `;
+
+      // Render Right panel: Summary
+      const summaryHtml = `
+        <div class="cart-summary-card">
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Order Summary</h3>
+          
+          <div class="summary-row">
+            <span>Subtotal</span>
+            <span>$${totals.subtotal.toFixed(2)}</span>
+          </div>
+          <div class="summary-row" style="color: var(--danger);">
+            <span>Discounts</span>
+            <span>-$${totals.discount.toFixed(2)}</span>
+          </div>
+          ${totals.couponDiscount > 0 ? `
+            <div class="summary-row" style="color: var(--success); font-weight: 600;">
+              <span>Promo Code (10%)</span>
+              <span>-$${totals.couponDiscount.toFixed(2)}</span>
+            </div>
+          ` : ''}
+          <div class="summary-row">
+            <span>Shipping</span>
+            <span style="color: var(--success); font-weight: 600;">Free</span>
+          </div>
+          
+          <!-- Coupon input -->
+          <div style="display: flex; gap: 10px; margin: 20px 0; border-top: 1px solid var(--border); padding-top: 20px;">
+            <input type="text" id="coupon-input" class="form-control" placeholder="Promo Code" value="${activeCoupon}" style="padding: 8px 12px; height: 38px;">
+            <button onclick="submitCoupon()" class="btn btn-secondary btn-sm" style="height: 38px;">Apply</button>
+          </div>
+          
+          <div class="summary-row total">
+            <span>Total</span>
+            <span style="color: var(--primary); font-size: 1.5rem;">$${totals.total.toFixed(2)}</span>
+          </div>
+
+          <!-- Checkout Address Form -->
+          <div style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <h4 style="margin-bottom: 12px; font-weight: 600;">Delivery Address</h4>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <textarea id="shipping-address" class="form-control" rows="3" placeholder="Full shipping address details..." required></textarea>
+            </div>
+          </div>
+
+          <button onclick="processCheckout()" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 15px; padding: 12px 20px;">
+            <i class="fas fa-credit-card"></i> Proceed to Checkout
+          </button>
+        </div>
+      `;
+
+      layout.innerHTML = itemsHtml + summaryHtml;
+    }
+
+    function submitCoupon() {
+      const code = document.getElementById('coupon-input').value.trim();
+      if (!code) {
+        activeCoupon = '';
+        renderCartView();
+        return;
+      }
+      if (code.toUpperCase() === 'SAVE10') {
+        activeCoupon = 'SAVE10';
+        showToast('Promo code applied successfully!', 'success');
+      } else {
+        showToast('Invalid promo code', 'error');
+        activeCoupon = '';
+      }
+      renderCartView();
+    }
+
+    async function processCheckout() {
+      const address = document.getElementById('shipping-address').value.trim();
+      if (!address) {
+        showToast('Please enter your shipping address details', 'warning');
+        return;
+      }
+
+      const proceedBtn = document.querySelector('.cart-summary-card button');
+      proceedBtn.disabled = true;
+      proceedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Checkout...';
+
+      await Cart.checkout(address, activeCoupon);
+
+      proceedBtn.disabled = false;
+      proceedBtn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Checkout';
+    }
+  </script>
+</body>
+
+</html>

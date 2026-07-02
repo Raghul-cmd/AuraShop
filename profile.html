@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Profile - AuraShop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header></header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Account Dashboard</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &nbsp;/&nbsp; <span>My Profile</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Profile Section -->
+  <section class="section">
+    <div class="container profile-layout">
+      
+      <!-- Profile Sidebar -->
+      <aside class="profile-sidebar">
+        <div class="profile-avatar" id="avatar-label">U</div>
+        <h3 id="profile-name-label">User Name</h3>
+        <p id="profile-email-label">user@domain.com</p>
+        
+        <nav class="profile-nav">
+          <a href="#" onclick="switchTab('profile'); return false;" id="tab-profile" class="active"><i class="fas fa-user-cog"></i> Profile Settings</a>
+          <a href="#" onclick="switchTab('orders'); return false;" id="tab-orders"><i class="fas fa-box-open"></i> Order History</a>
+          <a href="#" onclick="switchTab('wishlist'); return false;" id="tab-wishlist"><i class="fas fa-heart"></i> Wishlist</a>
+        </nav>
+      </aside>
+
+      <!-- Profile Content Area -->
+      <main class="profile-content" id="profile-main-content">
+        <!-- Injected dynamically -->
+      </main>
+
+    </div>
+  </section>
+
+  <!-- Clean Footer -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    let activeTab = 'profile';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Protect Route
+      if (!Auth.isLoggedIn()) {
+        showToast('Please login to access this section', 'warning');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Populate user info labels
+      const user = Auth.getUser();
+      if (user) {
+        document.getElementById('profile-name-label').textContent = user.name;
+        document.getElementById('profile-email-label').textContent = user.email;
+        document.getElementById('avatar-label').textContent = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      }
+
+      // Parse tab query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const tabParam = urlParams.get('tab');
+      if (tabParam && ['profile', 'orders', 'wishlist'].includes(tabParam)) {
+        activeTab = tabParam;
+      }
+
+      switchTab(activeTab);
+    });
+
+    // Reactive handler when items are wishlisted
+    document.addEventListener('wishlistUpdated', () => {
+      if (activeTab === 'wishlist') {
+        renderWishlistTab();
+      }
+    });
+
+    function switchTab(tabName) {
+      activeTab = tabName;
+      
+      // Update nav link highlighting classes
+      document.querySelectorAll('.profile-nav a').forEach(a => a.classList.remove('active'));
+      const activeLink = document.getElementById(`tab-${tabName}`);
+      if (activeLink) activeLink.classList.add('active');
+
+      // Update URL query
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + `?tab=${tabName}`;
+      window.history.pushState({ path: newUrl }, '', newUrl);
+
+      // Render tab view content
+      const content = document.getElementById('profile-main-content');
+      
+      if (tabName === 'profile') {
+        renderProfileSettingsTab(content);
+      } else if (tabName === 'orders') {
+        renderOrdersTab(content);
+      } else if (tabName === 'wishlist') {
+        renderWishlistTab(content);
+      }
+    }
+
+    // --- TAB RENDERING LOGIC ---
+
+    function renderProfileSettingsTab(container) {
+      const user = Auth.getUser();
+      container.innerHTML = `
+        <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Account Settings</h3>
+        <form id="profile-edit-form" onsubmit="handleProfileUpdate(event)">
+          <div class="form-group">
+            <label for="edit-name">Full Name</label>
+            <input type="text" id="edit-name" class="form-control" value="${user ? user.name : ''}" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-email">Email Address (Locked)</label>
+            <input type="email" id="edit-email" class="form-control" value="${user ? user.email : ''}" disabled>
+          </div>
+          <div class="form-group">
+            <label for="edit-password">New Password (leave empty to keep current)</label>
+            <input type="password" id="edit-password" class="form-control" placeholder="••••••••" minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top: 10px;"><i class="fas fa-save"></i> Save Profile Details</button>
+        </form>
+      `;
+    }
+
+    async function handleProfileUpdate(e) {
+      e.preventDefault();
+      const name = document.getElementById('edit-name').value.trim();
+      const password = document.getElementById('edit-password').value;
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+      const success = await Auth.updateProfile(name, password);
+      
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Profile Details';
+
+      if (success) {
+        document.getElementById('profile-name-label').textContent = name;
+        document.getElementById('avatar-label').textContent = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        // Clear password input
+        document.getElementById('edit-password').value = '';
+      }
+    }
+
+    async function renderOrdersTab(container) {
+      container.innerHTML = `
+        <div class="spinner-wrapper">
+          <div class="spinner"></div>
+        </div>
+      `;
+
+      try {
+        const orders = await API.getOrders();
+        
+        if (orders.length === 0) {
+          container.innerHTML = `
+            <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Order History</h3>
+            <div class="flex-center" style="flex-direction: column; padding: 40px 0;">
+              <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+              <p style="color: var(--text-secondary);">You have not placed any orders yet.</p>
+              <a href="products.html" class="btn btn-secondary btn-sm" style="margin-top: 15px;">Start Shopping</a>
+            </div>
+          `;
+          return;
+        }
+
+        let html = `
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Order History</h3>
+        `;
+
+        html += orders.map(order => {
+          const dateStr = new Date(order.created_at).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'long', day: 'numeric'
+          });
+
+          // Order Items HTML
+          const itemsHtml = order.items.map(item => `
+            <div class="flex-center" style="justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed var(--border);">
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <img src="${item.image_url}" alt="${item.name}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
+                <div>
+                  <h5 style="font-weight: 600; font-size: 0.9rem;">${item.name}</h5>
+                  <p style="font-size: 0.8rem; color: var(--text-secondary);">Qty: ${item.quantity} × $${parseFloat(item.price).toFixed(2)}</p>
+                </div>
+              </div>
+              <div style="font-weight:600; font-size: 0.9rem;">$${(item.quantity * item.price).toFixed(2)}</div>
+            </div>
+          `).join('');
+
+          return `
+            <div class="order-card">
+              <div class="order-header">
+                <div>
+                  <span style="font-weight: 700; color: var(--primary);">Order #${order.id}</span>
+                  <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 10px;">${dateStr}</span>
+                </div>
+                <span class="order-status ${order.status}">${order.status}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                ${itemsHtml}
+              </div>
+              <div class="flex-center" style="justify-content: space-between; font-weight: 700;">
+                <div>Coupon applied: ${order.coupon ? `<span style="color:var(--success); font-weight: 600;">${order.coupon}</span>` : '<span style="color:var(--text-muted);">None</span>'}</div>
+                <div style="font-size: 1.15rem; color: var(--primary);">Grand Total: $${parseFloat(order.total).toFixed(2)}</div>
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px;">
+                <strong>Shipping Address:</strong> ${order.shipping_address}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = `<p style="color: var(--danger);">Failed to load order logs.</p>`;
+      }
+    }
+
+    async function renderWishlistTab(container = null) {
+      if (!container) container = document.getElementById('profile-main-content');
+      
+      const wishIds = Cart.getWishlist();
+
+      if (wishIds.length === 0) {
+        container.innerHTML = `
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">My Wishlist</h3>
+          <div class="flex-center" style="flex-direction: column; padding: 40px 0;">
+            <i class="fas fa-heart" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 15px;"></i>
+            <p style="color: var(--text-secondary);">Your wishlist is empty.</p>
+            <a href="products.html" class="btn btn-secondary btn-sm" style="margin-top: 15px;">Explore Products</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">My Wishlist</h3>
+        <div class="products-grid" id="wishlist-products-grid">
+          <div class="spinner-wrapper" style="grid-column: 1/-1;">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      `;
+
+      try {
+        const grid = document.getElementById('wishlist-products-grid');
+        // Fetch all products, then filter locally (for simplicity since code is simple and short)
+        const allProducts = await API.getProducts();
+        const wishProducts = allProducts.filter(p => wishIds.includes(p.id));
+
+        if (wishProducts.length === 0) {
+          container.innerHTML = `<p>No wishlist selections.</p>`;
+          return;
+        }
+
+        grid.innerHTML = wishProducts.map(p => Products.renderProductCard(p)).join('');
+      } catch (error) {
+        container.innerHTML = `<p style="color: var(--danger);">Failed to load wishlist items.</p>`;
+      }
+    }
+  </script>
+</body>
+</html>

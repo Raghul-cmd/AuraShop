@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Catalog - AuraShop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header></header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Our Products</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &nbsp;/&nbsp; <span>Shop Catalog</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catalog Section -->
+  <section class="section" style="padding-top: 40px;">
+    <div class="container catalog-layout">
+      
+      <!-- Filters Sidebar -->
+      <aside class="filters-sidebar">
+        
+        <!-- Search widget -->
+        <div class="filter-widget">
+          <h3 class="filter-title">Search</h3>
+          <div class="catalog-search-bar" style="margin-top: 10px;">
+            <input type="text" id="search-input" class="form-control" placeholder="Search product name..." style="padding: 8px 12px;">
+            <button onclick="applyFilters()" class="btn btn-primary btn-sm" style="padding: 8px 14px;"><i class="fas fa-search"></i></button>
+          </div>
+        </div>
+
+        <!-- Categories widget -->
+        <div class="filter-widget">
+          <h3 class="filter-title">Categories</h3>
+          <ul class="filter-list" id="category-filter-list">
+            <!-- Loaded dynamically from API -->
+            <li>Loading categories...</li>
+          </ul>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-widget">
+          <h3 class="filter-title">Price Filter</h3>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="number" id="min-price" class="form-control" placeholder="Min" style="padding: 8px;" min="0">
+            <span>to</span>
+            <input type="number" id="max-price" class="form-control" placeholder="Max" style="padding: 8px;" min="0">
+          </div>
+          <button onclick="applyFilters()" class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 15px; justify-content: center;"><i class="fas fa-filter"></i> Apply Price Range</button>
+        </div>
+
+        <!-- Reset Button -->
+        <button onclick="resetAllFilters()" class="btn btn-secondary btn-sm" style="width: 100%; justify-content: center; border-color: var(--danger); color: var(--danger);"><i class="fas fa-redo"></i> Reset Filters</button>
+
+      </aside>
+
+      <!-- Main Catalog Content -->
+      <main class="catalog-content">
+        <div class="catalog-header">
+          <p id="results-count" style="color: var(--text-secondary); font-weight: 500;">Loading catalog items...</p>
+          <div class="catalog-sort">
+            <select id="sort-select" onchange="applyFilters()">
+              <option value="newest">Sort by: Newest</option>
+              <option value="price-asc">Sort by: Price: Low to High</option>
+              <option value="price-desc">Sort by: Price: High to Low</option>
+              <option value="rating">Sort by: Average Rating</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="products-grid" id="catalog-products-grid">
+          <!-- Injected dynamically -->
+        </div>
+      </main>
+
+    </div>
+  </section>
+
+  <!-- Clean Footer -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    let activeCategorySlug = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // 1. Parse URL queries if any (e.g. ?category=electronics or ?search=watch)
+      const urlParams = new URLSearchParams(window.location.search);
+      const catParam = urlParams.get('category');
+      const searchParam = urlParams.get('search');
+
+      if (catParam) activeCategorySlug = catParam;
+      if (searchParam) {
+        const searchInput = document.getElementById('search-input');
+        if (searchInput) searchInput.value = searchParam;
+      }
+
+      // 2. Load Filter Categories List
+      await loadFilterCategories();
+
+      // 3. Query and load catalog
+      await fetchCatalog();
+    });
+
+    async function loadFilterCategories() {
+      const listContainer = document.getElementById('category-filter-list');
+      if (!listContainer) return;
+
+      try {
+        const categories = await API.getCategories();
+        let html = `
+          <li>
+            <label>
+              <input type="radio" name="cat-radio" value="" ${activeCategorySlug === '' ? 'checked' : ''} onchange="selectCategory('')">
+              <span>All Collections</span>
+            </label>
+          </li>
+        `;
+        
+        html += categories.map(cat => `
+          <li>
+            <label>
+              <input type="radio" name="cat-radio" value="${cat.slug}" ${activeCategorySlug === cat.slug ? 'checked' : ''} onchange="selectCategory('${cat.slug}')">
+              <span>${cat.name}</span>
+            </label>
+          </li>
+        `).join('');
+
+        listContainer.innerHTML = html;
+      } catch (error) {
+        listContainer.innerHTML = '<li style="color: var(--danger);">Failed to load categories</li>';
+      }
+    }
+
+    function selectCategory(slug) {
+      activeCategorySlug = slug;
+      // Update browser URL query string without reloading page (SEO/UX best practice)
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + (slug ? `?category=${slug}` : '');
+      window.history.pushState({ path: newUrl }, '', newUrl);
+      fetchCatalog();
+    }
+
+    async function fetchCatalog() {
+      const grid = document.getElementById('catalog-products-grid');
+      const countLabel = document.getElementById('results-count');
+
+      // Compile query properties
+      const params = {};
+      if (activeCategorySlug) params.category = activeCategorySlug;
+      
+      const searchVal = document.getElementById('search-input').value.trim();
+      if (searchVal) params.search = searchVal;
+
+      const minVal = document.getElementById('min-price').value;
+      if (minVal) params.minPrice = minVal;
+
+      const maxVal = document.getElementById('max-price').value;
+      if (maxVal) params.maxPrice = maxVal;
+
+      const sortVal = document.getElementById('sort-select').value;
+      if (sortVal) params.sort = sortVal;
+
+      // Request API Products
+      await Products.loadCatalog(grid, params);
+
+      // Update count label
+      try {
+        const matches = grid.querySelectorAll('.product-card').length;
+        countLabel.textContent = `Showing ${matches} matching selections`;
+      } catch (e) {
+        countLabel.textContent = 'Showing 0 matching selections';
+      }
+    }
+
+    function applyFilters() {
+      fetchCatalog();
+    }
+
+    function resetAllFilters() {
+      // Clear forms
+      document.getElementById('search-input').value = '';
+      document.getElementById('min-price').value = '';
+      document.getElementById('max-price').value = '';
+      document.getElementById('sort-select').value = 'newest';
+      
+      // Reset radio selector
+      const radios = document.getElementsByName('cat-radio');
+      radios.forEach(r => { if(r.value === '') r.checked = true; });
+      
+      activeCategorySlug = '';
+      
+      // Reset URL bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.pushState({ path: cleanUrl }, '', cleanUrl);
+
+      fetchCatalog();
+    }
+  </script>
+</body>
+</html>

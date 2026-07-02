@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraShop - Elegant Minimal E-Commerce</title>
+  <meta name="description" content="Experience premium curation and sleek style. Explore the latest in electronics, fashion, and home decorations.">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sticky Header (Injected dynamically) -->
+  <header></header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-info">
+        <span class="hero-tag">Summer Launch '26</span>
+        <h1>Minimal Design. <br><span>Premium Comfort.</span></h1>
+        <p>Discover our newly introduced collections featuring elegant lines, sustainable fabrics, and modern aesthetic choices designed to elevate your everyday experiences.</p>
+        <div class="hero-buttons">
+          <a href="products.html" class="btn btn-primary"><i class="fas fa-shopping-bag"></i> Shop Collection</a>
+          <a href="about.html" class="btn btn-secondary">Learn More</a>
+        </div>
+      </div>
+      <div class="hero-image-wrapper">
+        <div class="hero-image-bg"></div>
+        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800" alt="Exclusive Collection" class="hero-image">
+      </div>
+    </div>
+  </section>
+
+  <!-- Categories Grid Section -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Shop by Category</h2>
+      <p class="section-subtitle">Find precisely what you are looking for in our sorted collections</p>
+      
+      <div class="category-cards" id="categories-grid">
+        <a href="products.html?category=electronics" class="category-card">
+          <div class="icon"><i class="fas fa-laptop"></i></div>
+          <h3>Electronics</h3>
+          <p>Sleek gadgets and setups</p>
+        </a>
+        <a href="products.html?category=fashion" class="category-card">
+          <div class="icon"><i class="fas fa-tshirt"></i></div>
+          <h3>Fashion</h3>
+          <p>Trendy apparel & jackets</p>
+        </a>
+        <a href="products.html?category=home-living" class="category-card">
+          <div class="icon"><i class="fas fa-couch"></i></div>
+          <h3>Home & Living</h3>
+          <p>Decor, comfort & chairs</p>
+        </a>
+        <a href="products.html?category=sports-outdoors" class="category-card">
+          <div class="icon"><i class="fas fa-running"></i></div>
+          <h3>Sports & Outdoors</h3>
+          <p>Training mats & trail bikes</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="section" style="background-color: var(--bg-primary);">
+    <div class="container">
+      <h2 class="section-title">Featured Products</h2>
+      <p class="section-subtitle">Handpicked highlights rated highest by our global buyers</p>
+      
+      <div class="products-grid" id="featured-products">
+        <!-- Injected via script -->
+        <div class="spinner-wrapper" style="grid-column: 1/-1;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promotional Banner Section -->
+  <section class="section container">
+    <div class="banner">
+      <div class="banner-content">
+        <span class="hero-tag" style="background-color: rgba(255,255,255,0.2); color: white;">Special Offer</span>
+        <h2>Enjoy 10% Off Your First Checkout</h2>
+        <p>Use the coupon code <strong>SAVE10</strong> at the checkout review summary. Applicable on all products with free shipping included.</p>
+        <a href="products.html" class="btn btn-secondary" style="background-color: white; color: var(--primary); border: none;">Shop Now</a>
+      </div>
+      <div class="banner-img">
+        <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=500" alt="Promo Sale">
+      </div>
+    </div>
+  </section>
+
+  <!-- Best Sellers Section -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Best Sellers</h2>
+      <p class="section-subtitle">Our top selling products this week</p>
+      
+      <div class="products-grid" id="bestseller-products">
+        <!-- Injected via script -->
+        <div class="spinner-wrapper" style="grid-column: 1/-1;">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="section testimonials">
+    <div class="container">
+      <h2 class="section-title">What Our Clients Say</h2>
+      <p class="section-subtitle">We prioritize comfort, quality, and fast shipping</p>
+      
+      <div class="testimonial-grid">
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="testimonial-text">"The headphones arrived in two days. The design looks extremely modern and sound cancellation works better than anything I have used before. AuraShop is now my favorite boutique."</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">AM</div>
+            <div class="testimonial-info">
+              <h4>Alex Morgan</h4>
+              <p>Verified Buyer</p>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <p class="testimonial-text">"I ordered the mesh office chair for my work setup. Back support is highly configurable, and it looks beautiful in my room. Recommend it 100%!"</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">SC</div>
+            <div class="testimonial-info">
+              <h4>Sarah Chen</h4>
+              <p>Designer</p>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="testimonial-stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="far fa-star"></i>
+          </div>
+          <p class="testimonial-text">"Excellent quality on the running shoes. Highly responsive customer support team when I had queries about size conversion. Overall a flawless experience."</p>
+          <div class="testimonial-user">
+            <div class="testimonial-avatar">JD</div>
+            <div class="testimonial-info">
+              <h4>John Doe</h4>
+              <p>Athlete</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clean Footer (Injected dynamically) -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+  
+  <script>
+    // Page script to render home grids
+    document.addEventListener('DOMContentLoaded', async () => {
+      const featuredContainer = document.getElementById('featured-products');
+      const bestsellerContainer = document.getElementById('bestseller-products');
+
+      try {
+        const products = await API.getProducts();
+        
+        // Render Featured (Sorted by rating)
+        const sortedFeatured = [...products].sort((a,b) => b.rating - a.rating).slice(0, 4);
+        featuredContainer.innerHTML = sortedFeatured.map(p => Products.renderProductCard(p)).join('');
+
+        // Render Bestsellers (Slice first 4 products)
+        bestsellerContainer.innerHTML = products.slice(0, 4).map(p => Products.renderProductCard(p)).join('');
+      } catch (error) {
+        featuredContainer.innerHTML = `<div class="flex-center" style="grid-column:1/-1;"><p style="color:var(--text-secondary);">Could not load products.</p></div>`;
+        bestsellerContainer.innerHTML = `<div class="flex-center" style="grid-column:1/-1;"><p style="color:var(--text-secondary);">Could not load products.</p></div>`;
+      }
+    });
+  </script>
+</body>
+</html>

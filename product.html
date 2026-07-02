@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - AuraShop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header></header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1 id="page-title-label">Product Details</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &nbsp;/&nbsp; <a href="products.html">Shop Catalog</a> &nbsp;/&nbsp; <span id="breadcrumbs-current">Item Detail</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Product Detail View Section -->
+  <section class="section">
+    <div class="container" id="product-detail-container">
+      <!-- Loaded dynamically via products.js -->
+      <div class="spinner-wrapper">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clean Footer -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get('id');
+
+      if (!productId) {
+        showToast('Invalid Product Selection', 'error');
+        setTimeout(() => { window.location.href = 'products.html'; }, 1500);
+        return;
+      }
+
+      // Load specific product details
+      const detailContainer = document.getElementById('product-detail-container');
+      await Products.loadDetailView(detailContainer, productId);
+
+      // Adjust dynamic headers page title
+      try {
+        const titleText = detailContainer.querySelector('h2').textContent;
+        document.title = `${titleText} - AuraShop`;
+        document.getElementById('page-title-label').textContent = titleText;
+        document.getElementById('breadcrumbs-current').textContent = titleText;
+      } catch (e) {}
+    });
+
+    // Support reactive update when wishlist is triggered
+    document.addEventListener('wishlistUpdated', (e) => {
+      // If wishlisted id matches the active details, update container icons classes if required
+    });
+  </script>
+</body>
+</html>

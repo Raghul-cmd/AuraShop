@@ -1,0 +1,179 @@
+/* 
+  E-Commerce Responsive Layout Styling
+  Adapts the grid structures, menus, headers, and footer components for tables and mobile viewports.
+*/
+
+@media (max-width: 1024px) {
+  .container {
+    padding: 0 24px;
+  }
+  
+  .hero h1 {
+    font-size: 3rem;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .catalog-layout, .cart-layout, .profile-layout {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .filters-sidebar, .profile-sidebar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .hero-tag {
+    margin-bottom: 15px;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-buttons {
+    justify-content: center;
+  }
+
+  .hero-image-wrapper {
+    order: -1;
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .testimonial-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .banner {
+    grid-template-columns: 1fr;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .banner-img {
+    display: none;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Responsive Mobile Menu Toggle */
+  .menu-toggle {
+    display: block;
+    color: var(--text-primary);
+  }
+
+  nav {
+    position: fixed;
+    top: var(--header-height);
+    left: -100%;
+    width: 100%;
+    height: calc(100vh - var(--header-height));
+    background-color: var(--bg-primary);
+    border-top: 1px solid var(--border);
+    transition: var(--transition);
+    z-index: 99;
+  }
+
+  nav.nav-active {
+    left: 0;
+  }
+
+  nav ul {
+    flex-direction: column;
+    padding: 40px;
+    gap: 30px;
+    align-items: flex-start;
+  }
+
+  nav a {
+    font-size: 1.2rem;
+    width: 100%;
+    display: block;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .products-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+
+  .catalog-search-bar {
+    max-width: 100%;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .cart-item-details {
+    margin-top: 10px;
+  }
+
+  .detail-actions {
+    flex-direction: column;
+  }
+
+  .qty-input {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .qty-input button {
+    flex: 1;
+  }
+
+  .detail-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - AuraShop</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <!-- Sticky Header -->
+  <header></header>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Admin Dashboard</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &nbsp;/&nbsp; <span>Administrative Dashboard</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Admin Interface Layout -->
+  <section class="section">
+    <div class="container profile-layout">
+      
+      <!-- Admin Sidebar Navigation -->
+      <aside class="profile-sidebar">
+        <div class="profile-avatar"><i class="fas fa-user-shield"></i></div>
+        <h3>System Manager</h3>
+        <p>Admin Level Control</p>
+        
+        <nav class="profile-nav">
+          <a href="#" onclick="switchAdminTab('stats'); return false;" id="tab-stats" class="active"><i class="fas fa-chart-bar"></i> Overview Stats</a>
+          <a href="#" onclick="switchAdminTab('products'); return false;" id="tab-products"><i class="fas fa-boxes"></i> Manage Products</a>
+          <a href="#" onclick="switchAdminTab('categories'); return false;" id="tab-categories"><i class="fas fa-tags"></i> Categories</a>
+          <a href="#" onclick="switchAdminTab('orders'); return false;" id="tab-orders"><i class="fas fa-receipt"></i> Orders Queue</a>
+        </nav>
+      </aside>
+
+      <!-- Admin Main Content Viewport -->
+      <main class="profile-content" id="admin-main-content">
+        <!-- Injected dynamically -->
+      </main>
+
+    </div>
+  </section>
+
+  <!-- Clean Footer -->
+  <footer></footer>
+
+  <!-- Scripts -->
+  <script src="js/api.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    let activeTab = 'stats';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Admin guard
+      if (!Auth.isLoggedIn() || !Auth.isAdmin()) {
+        showToast('Access denied: Administrator permissions required', 'error');
+        window.location.href = 'index.html';
+        return;
+      }
+      switchAdminTab(activeTab);
+    });
+
+    function switchAdminTab(tabName) {
+      activeTab = tabName;
+      document.querySelectorAll('.profile-nav a').forEach(a => a.classList.remove('active'));
+      const activeLink = document.getElementById(`tab-${tabName}`);
+      if (activeLink) activeLink.classList.add('active');
+
+      const content = document.getElementById('admin-main-content');
+      
+      if (tabName === 'stats') {
+        renderStatsTab(content);
+      } else if (tabName === 'products') {
+        renderProductsTab(content);
+      } else if (tabName === 'categories') {
+        renderCategoriesTab(content);
+      } else if (tabName === 'orders') {
+        renderOrdersTab(content);
+      }
+    }
+
+    // --- OVERVIEW STATS TAB ---
+    async function renderStatsTab(container) {
+      container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
+      try {
+        const stats = await API.getAdminStats();
+        
+        let recentOrdersHtml = stats.recentOrders.length === 0 
+          ? '<p style="color:var(--text-secondary);">No recent orders placed.</p>'
+          : `
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--border); text-align: left; color: var(--text-secondary);">
+                  <th style="padding: 10px 5px;">Order ID</th>
+                  <th>Buyer</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${stats.recentOrders.map(o => `
+                  <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 12px 5px; font-weight: 700; color: var(--primary);">#${o.id}</td>
+                    <td>${o.user_name}</td>
+                    <td>$${parseFloat(o.total).toFixed(2)}</td>
+                    <td><span class="order-status ${o.status}" style="font-size:0.7rem; padding: 2px 6px;">${o.status}</span></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          `;
+
+        container.innerHTML = `
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Store Statistics</h3>
+          <div class="admin-stats-grid">
+            <div class="admin-stat-card">
+              <h4>Total Users</h4>
+              <div class="val">${stats.users}</div>
+            </div>
+            <div class="admin-stat-card">
+              <h4>Total Products</h4>
+              <div class="val">${stats.products}</div>
+            </div>
+            <div class="admin-stat-card">
+              <h4>Total Orders</h4>
+              <div class="val">${stats.orders}</div>
+            </div>
+            <div class="admin-stat-card">
+              <h4>Total Sales</h4>
+              <div class="val">$${stats.sales}</div>
+            </div>
+          </div>
+          
+          <div style="margin-top: 40px;">
+            <h4 style="font-weight:700; margin-bottom: 10px;">Recent Purchases</h4>
+            ${recentOrdersHtml}
+          </div>
+        `;
+      } catch (e) {
+        container.innerHTML = `<p style="color:var(--danger);">Failed to calculate shop stats.</p>`;
+      }
+    }
+
+    // --- MANAGE PRODUCTS TAB ---
+    let editProductId = null; // tracking if editing
+
+    async function renderProductsTab(container) {
+      container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
+      try {
+        const products = await API.getProducts();
+        const categories = await API.getCategories();
+        
+        let productsRows = products.map(p => `
+          <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
+            <td style="padding: 10px 5px;"><img src="${p.image_url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
+            <td style="font-weight:600;">${p.name}</td>
+            <td>${p.category_name}</td>
+            <td>$${parseFloat(p.price).toFixed(2)}</td>
+            <td>-${Math.round(p.discount)}%</td>
+            <td>Qty: ${p.stock}</td>
+            <td style="text-align: right;">
+              <button onclick="editProduct(${JSON.stringify(p).replace(/"/g, '&quot;')})" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size:0.75rem;"><i class="fas fa-edit"></i></button>
+              <button onclick="deleteProduct(${p.id})" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size:0.75rem; color:var(--danger); border-color:var(--danger);"><i class="fas fa-trash-alt"></i></button>
+            </td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+            <h3 style="font-weight:700;">Products Management</h3>
+            <button onclick="toggleProductForm()" class="btn btn-primary btn-sm" id="toggle-prod-form-btn"><i class="fas fa-plus"></i> Add New Product</button>
+          </div>
+
+          <!-- Product CRUD Form Card -->
+          <div id="product-form-card" style="display:none; background-color:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; margin-bottom:30px;">
+            <h4 id="form-action-title" style="margin-bottom:15px; font-weight:700;">Add Product Specifications</h4>
+            <form onsubmit="saveProductForm(event)">
+              <div class="grid-2" style="gap:15px; margin-bottom:15px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Product Name</label>
+                  <input type="text" id="prod-name" class="form-control" required style="padding:8px 12px;">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Category</label>
+                  <select id="prod-category" class="form-control" required style="padding:8px 12px; height: 42px;">
+                    ${categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-4" style="gap:15px; margin-bottom:15px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Original Price</label>
+                  <input type="number" id="prod-price" class="form-control" step="0.01" required style="padding:8px 12px;">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Discount (%)</label>
+                  <input type="number" id="prod-discount" class="form-control" value="0" style="padding:8px 12px;">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Rating (1-5)</label>
+                  <input type="number" id="prod-rating" class="form-control" step="0.1" value="4.5" style="padding:8px 12px;">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Stock Count</label>
+                  <input type="number" id="prod-stock" class="form-control" value="10" required style="padding:8px 12px;">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom:15px;">
+                <label>Image URL</label>
+                <input type="url" id="prod-image" class="form-control" placeholder="https://images.unsplash.com/photo..." style="padding:8px 12px;">
+              </div>
+
+              <div class="form-group" style="margin-bottom:15px;">
+                <label>Description Details</label>
+                <textarea id="prod-desc" class="form-control" rows="3" style="padding:8px 12px;"></textarea>
+              </div>
+
+              <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn btn-primary btn-sm">Save Specifications</button>
+                <button type="button" onclick="cancelProductForm()" class="btn btn-secondary btn-sm">Cancel</button>
+              </div>
+            </form>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border); text-align:left; color:var(--text-secondary); font-size:0.85rem;">
+                <th style="padding:10px 5px; width:50px;">Img</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Discount</th>
+                <th>Stock</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productsRows}
+            </tbody>
+          </table>
+        `;
+      } catch (e) {
+        container.innerHTML = `<p style="color:var(--danger);">Failed to load products manager views.</p>`;
+      }
+    }
+
+    function toggleProductForm() {
+      const card = document.getElementById('product-form-card');
+      const btn = document.getElementById('toggle-prod-form-btn');
+      if (card.style.display === 'none') {
+        card.style.display = 'block';
+        btn.innerHTML = '<i class="fas fa-times"></i> Close Form';
+      } else {
+        cancelProductForm();
+      }
+    }
+
+    function cancelProductForm() {
+      document.getElementById('product-form-card').style.display = 'none';
+      document.getElementById('toggle-prod-form-btn').innerHTML = '<i class="fas fa-plus"></i> Add New Product';
+      editProductId = null;
+      document.getElementById('form-action-title').textContent = 'Add Product Specifications';
+      
+      // Clear inputs
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      document.getElementById('prod-discount').value = '0';
+      document.getElementById('prod-rating').value = '4.5';
+      document.getElementById('prod-stock').value = '10';
+      document.getElementById('prod-image').value = '';
+      document.getElementById('prod-desc').value = '';
+    }
+
+    function editProduct(product) {
+      document.getElementById('product-form-card').style.display = 'block';
+      document.getElementById('toggle-prod-form-btn').innerHTML = '<i class="fas fa-times"></i> Close Form';
+      document.getElementById('form-action-title').textContent = `Edit Details: ${product.name}`;
+      editProductId = product.id;
+
+      document.getElementById('prod-name').value = product.name;
+      document.getElementById('prod-category').value = product.category_id;
+      document.getElementById('prod-price').value = product.price;
+      document.getElementById('prod-discount').value = product.discount;
+      document.getElementById('prod-rating').value = product.rating;
+      document.getElementById('prod-stock').value = product.stock;
+      document.getElementById('prod-image').value = product.image_url;
+      document.getElementById('prod-desc').value = product.description;
+    }
+
+    async function saveProductForm(e) {
+      e.preventDefault();
+      const productData = {
+        name: document.getElementById('prod-name').value.trim(),
+        category_id: parseInt(document.getElementById('prod-category').value),
+        price: parseFloat(document.getElementById('prod-price').value),
+        discount: parseFloat(document.getElementById('prod-discount').value || 0),
+        rating: parseFloat(document.getElementById('prod-rating').value || 4.5),
+        stock: parseInt(document.getElementById('prod-stock').value || 10),
+        image_url: document.getElementById('prod-image').value.trim(),
+        description: document.getElementById('prod-desc').value.trim()
+      };
+
+      try {
+        if (editProductId) {
+          const res = await API.updateProduct(editProductId, productData);
+          showToast(res.message, 'success');
+        } else {
+          const res = await API.addProduct(productData);
+          showToast(res.message, 'success');
+        }
+        cancelProductForm();
+        renderProductsTab(document.getElementById('admin-main-content'));
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteProduct(productId) {
+      if (!confirm('Are you sure you want to delete this product?')) return;
+      try {
+        const res = await API.deleteProduct(productId);
+        showToast(res.message, 'success');
+        renderProductsTab(document.getElementById('admin-main-content'));
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // --- MANAGE CATEGORIES TAB ---
+    async function renderCategoriesTab(container) {
+      container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
+      try {
+        const categories = await API.getCategories();
+        
+        let catRows = categories.map(c => `
+          <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
+            <td style="padding:12px 5px; font-weight:700; color:var(--primary);">#${c.id}</td>
+            <td style="font-weight:600;">${c.name}</td>
+            <td><code>${c.slug}</code></td>
+            <td>${c.description || '<span style="color:var(--text-muted);">None</span>'}</td>
+            <td style="text-align: right;">
+              <button onclick="deleteCategory(${c.id})" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size:0.75rem; color:var(--danger); border-color:var(--danger);"><i class="fas fa-trash-alt"></i></button>
+            </td>
+          </tr>
+        `).join('');
+
+        container.innerHTML = `
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Categories Management</h3>
+          
+          <div style="background-color:var(--bg-secondary); border:1px solid var(--border); border-radius:var(--radius-md); padding:20px; margin-bottom:30px;">
+            <h4 style="margin-bottom:12px; font-weight:700;">Add New Category</h4>
+            <form onsubmit="saveCategoryForm(event)" class="grid-3" style="align-items: flex-end; gap: 15px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Category Name</label>
+                <input type="text" id="cat-name" class="form-control" required style="padding:8px 12px;" placeholder="e.g. Footwear">
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Category Slug</label>
+                <input type="text" id="cat-slug" class="form-control" required style="padding:8px 12px;" placeholder="e.g. footwear">
+              </div>
+              <button type="submit" class="btn btn-primary" style="height:42px; justify-content:center;"><i class="fas fa-plus"></i> Save Category</button>
+            </form>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border); text-align:left; color:var(--text-secondary); font-size:0.85rem;">
+                <th style="padding:10px 5px; width:60px;">ID</th>
+                <th>Category Title</th>
+                <th>Slug</th>
+                <th>Description</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${catRows}
+            </tbody>
+          </table>
+        `;
+      } catch (e) {
+        container.innerHTML = `<p style="color:var(--danger);">Failed to load categories dashboard.</p>`;
+      }
+    }
+
+    async function saveCategoryForm(e) {
+      e.preventDefault();
+      const catData = {
+        name: document.getElementById('cat-name').value.trim(),
+        slug: document.getElementById('cat-slug').value.trim()
+      };
+      try {
+        const res = await API.addCategory(catData);
+        showToast(res.message, 'success');
+        renderCategoriesTab(document.getElementById('admin-main-content'));
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteCategory(id) {
+      if (!confirm('Are you sure you want to delete this category? Products mapped will have category unassigned.')) return;
+      try {
+        const res = await API.deleteCategory(id);
+        showToast(res.message, 'success');
+        renderCategoriesTab(document.getElementById('admin-main-content'));
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    // --- MANAGE ORDERS TAB ---
+    async function renderOrdersTab(container) {
+      container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
+      try {
+        const orders = await API.getAdminOrders();
+        
+        let orderRows = orders.map(o => {
+          const dateStr = new Date(o.created_at).toLocaleDateString('en-US', {
+            month: 'short', day: 'numeric', year: '2-digit'
+          });
+          const itemsSummary = o.items.map(i => `${i.name} (Qty: ${i.quantity})`).join(', ');
+
+          return `
+            <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
+              <td style="padding:15px 5px; font-weight:700; color:var(--primary);">#${o.id}</td>
+              <td>
+                <div style="font-weight:600;">${o.user_name}</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">${o.user_email}</div>
+              </td>
+              <td style="max-width:250px; font-size:0.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsSummary}">${itemsSummary}</td>
+              <td>$${parseFloat(o.total).toFixed(2)}</td>
+              <td>${dateStr}</td>
+              <td>
+                <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding: 4px 8px; border-radius: var(--radius-sm); border-color: var(--border); font-size: 0.8rem; font-weight: 500;">
+                  <option value="Pending" ${o.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                  <option value="Processing" ${o.status === 'Processing' ? 'selected' : ''}>Processing</option>
+                  <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                  <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                  <option value="Cancelled" ${o.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        container.innerHTML = `
+          <h3 style="margin-bottom: 20px; font-weight: 700; border-bottom: 1px solid var(--border); padding-bottom: 10px;">Orders Queue Management</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom: 2px solid var(--border); text-align:left; color:var(--text-secondary); font-size:0.85rem;">
+                <th style="padding:10px 5px; width:60px;">ID</th>
+                <th>Customer</th>
+                <th>Items Summary</th>
+                <th>Total Paid</th>
+                <th>Order Date</th>
+                <th>Delivery Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${orderRows}
+            </tbody>
+          </table>
+        `;
+      } catch (e) {
+        container.innerHTML = `<p style="color:var(--danger);">Failed to query orders queues.</p>`;
+      }
+    }
+
+    async function updateOrderStatus(orderId, newStatus) {
+      try {
+        const res = await API.updateOrderStatus(orderId, newStatus);
+        showToast(res.message, 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+  </script>
+</body>
+</html>
