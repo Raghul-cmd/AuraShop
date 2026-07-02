@@ -88,7 +88,7 @@ function renderHeaderFooter() {
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; ${new Date().getFullYear()} AuraShop. Powered by Vanilla JS & Aiven Cloud PostgreSQL.</p>
+          <p>&copy; ${new Date().getFullYear()} AuraShop. All rights reserved.</p>
           <div style="display: flex; gap: 15px;">
             <i class="fab fa-cc-visa" style="font-size: 1.5rem;"></i>
             <i class="fab fa-cc-mastercard" style="font-size: 1.5rem;"></i>
