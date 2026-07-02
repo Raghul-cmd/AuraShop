@@ -1,5 +1,62 @@
 // Global Bootstrapper & UI Layout Manager
 
+// Self-invoking page preloader
+(function() {
+  const preloader = document.createElement('div');
+  preloader.id = 'preloader';
+  preloader.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--bg-primary, #ffffff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+  `;
+  preloader.innerHTML = `
+    <div style="text-align: center; font-family: sans-serif;">
+      <div style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary, #0f172a); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; justify-content: center; animation: loaderPulse 1.5s infinite ease-in-out;">
+        <i class="fas fa-shopping-bag" style="color: #2563eb;"></i> <span style="color: #2563eb;">Aura</span>Shop
+      </div>
+      <div style="width: 120px; height: 3px; background-color: var(--border, #e2e8f0); border-radius: 3px; overflow: hidden; margin: 0 auto;">
+        <div style="width: 0%; height: 100%; background-color: #2563eb; animation: loadingProgress 1.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);"></div>
+      </div>
+    </div>
+  `;
+
+  const style = document.createElement('style');
+  style.innerHTML = `
+    @keyframes loaderPulse {
+      0%, 100% { transform: scale(0.97); opacity: 0.85; }
+      50% { transform: scale(1.03); opacity: 1; }
+    }
+    @keyframes loadingProgress {
+      to { width: 100%; }
+    }
+    body.dark-mode #preloader {
+      background-color: #0f172a !important;
+    }
+    body.dark-mode #preloader div {
+      color: #f8fafc !important;
+    }
+  `;
+  document.head.appendChild(style);
+  document.body ? document.body.prepend(preloader) : document.addEventListener('DOMContentLoaded', () => document.body.prepend(preloader));
+
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      preloader.style.opacity = '0';
+      preloader.style.visibility = 'hidden';
+      setTimeout(() => preloader.remove(), 400);
+    }, 450);
+  });
+})();
+
+
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   renderHeaderFooter();

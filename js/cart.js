@@ -156,11 +156,54 @@ const Cart = {
         shippingAddress
       });
       
-      showToast(response.message, 'success');
       this.clearCart();
+      
+      // Success Celebration Overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      `;
+      overlay.innerHTML = `
+        <div style="background-color: var(--bg-card); padding: 50px; border-radius: var(--radius-lg); text-align: center; max-width: 450px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); transform: scale(0.8); transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
+          <div style="width: 80px; height: 80px; background-color: var(--primary-light); color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 25px; animation: checkPulse 1s ease-in-out infinite;">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h2 style="font-weight: 800; margin-bottom: 10px; color: var(--text-primary);">Order Placed!</h2>
+          <p style="color: var(--text-secondary); margin-bottom: 25px;">Thank you for shopping with AuraShop. Your order has been placed successfully.</p>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">Redirecting to order logs...</div>
+        </div>
+      `;
+      
+      const checkStyle = document.createElement('style');
+      checkStyle.innerHTML = `
+        @keyframes checkPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.08); }
+        }
+      `;
+      document.head.appendChild(checkStyle);
+      document.body.appendChild(overlay);
+
+      setTimeout(() => {
+        overlay.style.opacity = '1';
+        overlay.querySelector('div').style.transform = 'scale(1)';
+      }, 50);
+
       setTimeout(() => {
         window.location.href = 'profile.html?tab=orders';
-      }, 1500);
+      }, 2500);
     } catch (error) {
       showToast(error.message, 'error');
     }
