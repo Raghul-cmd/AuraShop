@@ -19,24 +19,24 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 // ----------------------------------------------------
-// DATABASE CONFIGURATION (PostgreSQL / SQLite Fallback)
+// Database Configuration
 // ----------------------------------------------------
 let pgPool = null;
 let sqliteDb = null;
 const isPostgres = !!process.env.DATABASE_URL;
 
 if (isPostgres) {
-  console.log('Connecting to Aiven Cloud PostgreSQL...');
+  console.log('Connecting to database...');
   pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
   });
 } else {
-  console.log('No DATABASE_URL found. Initializing local SQLite database (ecommerce.db)...');
+  console.log('Initializing local database...');
   sqliteDb = new sqlite3.Database(path.join(__dirname, 'ecommerce.db'));
 }
 
-// Adapts PostgreSQL positional parameter queries ($1, $2) for SQLite (?)
+// Adapt positional parameters for SQL queries
 function queryAdapt(sql) {
   if (isPostgres) return sql;
   return sql.replace(/\$\d+/g, '?');
@@ -97,12 +97,11 @@ function dbRun(sql, params = []) {
 async function initDb() {
   try {
     if (isPostgres) {
-      // Execute the schema SQL
       const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
       await pgPool.query(schemaSql);
-      console.log('PostgreSQL schema initialized successfully.');
+      console.log('Database schema initialized.');
     } else {
-      // Create tables for SQLite
+      // Create tables
       await dbRun(`
         CREATE TABLE IF NOT EXISTS users (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,7 +171,7 @@ async function initDb() {
           UNIQUE(user_id, product_id)
         )
       `);
-      console.log('SQLite tables verified/created.');
+      console.log('Local tables verified/created.');
     }
 
     // Seed Categories if empty
