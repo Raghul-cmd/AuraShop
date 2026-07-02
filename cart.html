@@ -167,7 +167,7 @@
             </div>
           </div>
 
-          <button onclick="processCheckout()" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 15px; padding: 12px 20px;">
+          <button id="checkout-btn" onclick="processCheckout()" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 15px; padding: 12px 20px;">
             <i class="fas fa-credit-card"></i> Proceed to Checkout
           </button>
         </div>
@@ -200,14 +200,174 @@
         return;
       }
 
-      const proceedBtn = document.querySelector('.cart-summary-card button');
-      proceedBtn.disabled = true;
-      proceedBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Checkout...';
+      if (!Auth.isLoggedIn()) {
+        showToast('Please log in to complete your checkout', 'warning');
+        setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+        return;
+      }
 
-      await Cart.checkout(address, activeCoupon);
+      const totals = Cart.getTotals(activeCoupon);
 
-      proceedBtn.disabled = false;
-      proceedBtn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Checkout';
+      // Render and append simulated payment gateway modal
+      const payModal = document.createElement('div');
+      payModal.id = 'payment-modal-overlay';
+      payModal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+        background-color: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px);
+        display: flex; align-items: center; justify-content: center; z-index: 999999;
+        opacity: 0; transition: opacity 0.3s ease;
+      `;
+      payModal.innerHTML = `
+        <div style="background-color: var(--bg-card); padding: 30px; border-radius: var(--radius-lg); width: 100%; max-width: 420px; border: 1px solid var(--border); box-shadow: var(--shadow-lg);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <h3 style="font-weight: 800;">Simulated Secure Pay</h3>
+            <button onclick="closePaymentModal()" style="font-size: 1.2rem; color: var(--text-muted);"><i class="fas fa-times"></i></button>
+          </div>
+
+          <!-- 3D Flippable Credit Card -->
+          <div class="credit-card-wrap" id="card-flipper">
+            <div class="credit-card-inner">
+              <div class="credit-card-front">
+                <div style="display:flex; justify-content:space-between; align-items:center; font-size:1.2rem;">
+                  <i class="fas fa-sim-card"></i>
+                  <i class="fab fa-cc-visa"></i>
+                </div>
+                <div id="card-num-display" style="font-size: 1.35rem; font-weight: 700; letter-spacing: 2px; margin: 20px 0;">•••• •••• •••• ••••</div>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; text-transform:uppercase;">
+                  <div>
+                    <div style="color: rgba(255,255,255,0.7); font-size:0.6rem;">Cardholder</div>
+                    <div id="card-name-display" style="font-weight: 600;">Your Name</div>
+                  </div>
+                  <div>
+                    <div style="color: rgba(255,255,255,0.7); font-size:0.6rem;">Expires</div>
+                    <div id="card-expiry-display" style="font-weight: 600;">MM/YY</div>
+                  </div>
+                </div>
+              </div>
+              <div class="credit-card-back">
+                <div style="width: 100%; height: 35px; background-color: #000; margin-top: 15px;"></div>
+                <div style="padding: 15px 24px;">
+                  <div style="background-color: #fff; color: #000; padding: 6px; text-align: right; font-family: monospace; border-radius: 4px; font-size: 0.9rem;">
+                    <span style="color: #ccc; letter-spacing: 3px;">xxxx</span> <strong id="card-cvv-display">•••</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Payment Input Fields -->
+          <form onsubmit="handleSimulatedPayment(event, '${address}')">
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-size:0.75rem;">Card Number</label>
+              <input type="text" id="pay-number" class="form-control" placeholder="4111 1111 1111 1111" maxlength="19" required style="padding:8px 12px; font-size:0.9rem;">
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-size:0.75rem;">Cardholder Name</label>
+              <input type="text" id="pay-name" class="form-control" placeholder="John Doe" required style="padding:8px 12px; font-size:0.9rem;">
+            </div>
+            <div style="display:flex; gap: 15px; margin-bottom: 20px;">
+              <div class="form-group" style="flex:1; margin-bottom: 0;">
+                <label style="font-size:0.75rem;">Expiry Date</label>
+                <input type="text" id="pay-expiry" class="form-control" placeholder="MM/YY" maxlength="5" required style="padding:8px 12px; font-size:0.9rem;">
+              </div>
+              <div class="form-group" style="flex:1; margin-bottom: 0;">
+                <label style="font-size:0.75rem;">CVV</label>
+                <input type="password" id="pay-cvv" class="form-control" placeholder="123" maxlength="3" required style="padding:8px 12px; font-size:0.9rem;">
+              </div>
+            </div>
+            <button type="submit" id="pay-submit-btn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;">
+              <i class="fas fa-lock"></i> Authorize & Pay $${totals.total.toFixed(2)}
+            </button>
+          </form>
+        </div>
+      `;
+
+      // Append styles if not present
+      if (!document.getElementById('card-flip-styles')) {
+        const style = document.createElement('style');
+        style.id = 'card-flip-styles';
+        style.innerHTML = `
+          .credit-card-wrap { perspective: 1000px; width: 100%; height: 175px; margin-bottom: 20px; }
+          .credit-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
+          .credit-card-wrap.flipped .credit-card-inner { transform: rotateY(180deg); }
+          .credit-card-front, .credit-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius-md); padding: 20px; color: white; display: flex; flex-direction: column; justify-content: space-between; box-shadow: var(--shadow-md); }
+          .credit-card-front { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+          .credit-card-back { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); transform: rotateY(180deg); padding: 0; }
+        `;
+        document.head.appendChild(style);
+      }
+
+      document.body.appendChild(payModal);
+      setTimeout(() => { payModal.style.opacity = '1'; }, 50);
+
+      // Setup credit card input event listeners
+      const numInput = document.getElementById('pay-number');
+      const nameInput = document.getElementById('pay-name');
+      const expiryInput = document.getElementById('pay-expiry');
+      const cvvInput = document.getElementById('pay-cvv');
+      const flipper = document.getElementById('card-flipper');
+
+      numInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        let formatted = '';
+        for (let i = 0; i < val.length; i++) {
+          if (i > 0 && i % 4 === 0) formatted += ' ';
+          formatted += val[i];
+        }
+        e.target.value = formatted;
+        document.getElementById('card-num-display').textContent = formatted || '•••• •••• •••• ••••';
+      });
+
+      nameInput.addEventListener('input', (e) => {
+        document.getElementById('card-name-display').textContent = e.target.value.toUpperCase() || 'YOUR NAME';
+      });
+
+      expiryInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        if (val.length >= 2) {
+          val = val.slice(0, 2) + '/' + val.slice(2, 4);
+        }
+        e.target.value = val;
+        document.getElementById('card-expiry-display').textContent = val || 'MM/YY';
+      });
+
+      cvvInput.addEventListener('input', (e) => {
+        let val = e.target.value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+        e.target.value = val;
+        document.getElementById('card-cvv-display').textContent = val || '•••';
+      });
+
+      // Flip card on CVV focus
+      cvvInput.addEventListener('focus', () => { flipper.classList.add('flipped'); });
+      cvvInput.addEventListener('blur', () => { flipper.classList.remove('flipped'); });
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('payment-modal-overlay');
+      if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => { modal.remove(); }, 300);
+      }
+    }
+
+    async function handleSimulatedPayment(e, address) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('pay-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Authorization...';
+
+      // Simulate bank authorization processing (1.5s)
+      setTimeout(async () => {
+        closePaymentModal();
+        
+        // Trigger checkout
+        const checkoutBtn = document.getElementById('checkout-btn');
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing Order...';
+        await Cart.checkout(address, activeCoupon);
+        checkoutBtn.disabled = false;
+        checkoutBtn.innerHTML = '<i class="fas fa-credit-card"></i> Proceed to Checkout';
+      }, 1500);
     }
   </script>
 </body>
