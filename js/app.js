@@ -112,9 +112,9 @@ function renderHeaderFooter() {
             </a>
             <p>Experience premium curation and sleek style. We deliver elegance directly to your doorstep.</p>
             <div class="social-links">
-              <a href="#" class="btn-icon"><i class="fab fa-facebook-f"></i></a>
-              <a href="#" class="btn-icon"><i class="fab fa-twitter"></i></a>
-              <a href="#" class="btn-icon"><i class="fab fa-instagram"></i></a>
+              <a href="mailto:support@aurashop.com" class="btn-icon" title="Email Us"><i class="fas fa-envelope"></i></a>
+              <a href="https://wa.me/15552345678" target="_blank" class="btn-icon" title="WhatsApp Us"><i class="fab fa-whatsapp"></i></a>
+              <a href="tel:+15552345678" class="btn-icon" title="Call Us"><i class="fas fa-phone-alt"></i></a>
             </div>
           </div>
           <div class="footer-col">
