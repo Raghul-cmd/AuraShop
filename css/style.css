@@ -253,14 +253,22 @@ body.dark-mode header {
   font-size: 1.4rem;
   font-weight: 700;
   letter-spacing: -0.5px;
-  color: var(--text-primary);
+  color: #000000;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+body.dark-mode .logo {
+  color: #ffffff;
+}
+
 .logo span {
   color: var(--primary);
+}
+
+.logo > span {
+  color: inherit;
 }
 
 nav ul {

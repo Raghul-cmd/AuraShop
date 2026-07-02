@@ -27,6 +27,11 @@
 }
 
 @media (max-width: 768px) {
+  .logo {
+    margin-right: 20px;
+    flex-shrink: 0;
+  }
+
   .hero-grid {
     grid-template-columns: 1fr;
     text-align: center;

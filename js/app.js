@@ -1,7 +1,7 @@
 // Global Bootstrapper & UI Layout Manager
 
 // Self-invoking page preloader
-(function() {
+(function () {
   const preloader = document.createElement('div');
   preloader.id = 'preloader';
   preloader.style.cssText = `
@@ -19,8 +19,8 @@
   `;
   preloader.innerHTML = `
     <div style="text-align: center; font-family: sans-serif;">
-      <div style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary, #0f172a); display: flex; align-items: center; gap: 10px; margin-bottom: 20px; justify-content: center; animation: loaderPulse 1.5s infinite ease-in-out;">
-        <i class="fas fa-shopping-bag" style="color: #2563eb;"></i> <span style="color: #2563eb;">Aura</span>Shop
+      <div style="font-size: 2.2rem; font-weight: 800; letter-spacing: -0.5px; color: #000000; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; justify-content: center; animation: loaderPulse 1.5s infinite ease-in-out;">
+        <i class="fas fa-shopping-bag" style="color: #2563eb;"></i> <span><span style="color: #2563eb;">Aura</span>Shop</span>
       </div>
       <div style="width: 120px; height: 3px; background-color: var(--border, #e2e8f0); border-radius: 3px; overflow: hidden; margin: 0 auto;">
         <div style="width: 0%; height: 100%; background-color: #2563eb; animation: loadingProgress 1.2s forwards cubic-bezier(0.1, 0.8, 0.3, 1);"></div>
@@ -81,7 +81,7 @@ function renderHeaderFooter() {
     headerElem.innerHTML = `
       <div class="container header-container">
         <a href="index.html" class="logo">
-          <i class="fas fa-shopping-bag"></i> <span>Aura</span>Shop
+          <i class="fas fa-shopping-bag"></i> <span><span>Aura</span>Shop</span>
         </a>
         <button class="menu-toggle" id="menu-toggle-btn" aria-label="Toggle Menu">
           <i class="fas fa-bars"></i>
@@ -108,11 +108,11 @@ function renderHeaderFooter() {
         <div class="footer-grid">
           <div class="footer-col">
             <a href="index.html" class="logo" style="margin-bottom: 15px;">
-              <i class="fas fa-shopping-bag"></i> <span>Aura</span>Shop
+              <i class="fas fa-shopping-bag"></i> <span><span>Aura</span>Shop</span>
             </a>
             <p>Experience premium curation and sleek style. We deliver elegance directly to your doorstep.</p>
             <div class="social-links">
-              <a href="mailto:support@aurashop.com" class="btn-icon" title="Email Us"><i class="fas fa-envelope"></i></a>
+              <a href="mailto:svrcloudtech@gmail.com" class="btn-icon" title="Email Us"><i class="fas fa-envelope"></i></a>
               <a href="https://wa.me/15552345678" target="_blank" class="btn-icon" title="WhatsApp Us"><i class="fab fa-whatsapp"></i></a>
               <a href="tel:+15552345678" class="btn-icon" title="Call Us"><i class="fas fa-phone-alt"></i></a>
             </div>
@@ -169,7 +169,7 @@ function setupMobileNav() {
   document.addEventListener('click', (e) => {
     const toggleBtn = document.getElementById('menu-toggle-btn');
     const navMenu = document.getElementById('navbar-menu');
-    
+
     if (toggleBtn && (toggleBtn.contains(e.target) || e.target.closest('#menu-toggle-btn'))) {
       navMenu.classList.toggle('nav-active');
       const icon = toggleBtn.querySelector('i');
@@ -197,7 +197,7 @@ function showToast(message, type = 'success') {
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  
+
   let icon = '<i class="fas fa-check-circle"></i>';
   if (type === 'error') icon = '<i class="fas fa-times-circle"></i>';
   if (type === 'warning') icon = '<i class="fas fa-exclamation-circle"></i>';
