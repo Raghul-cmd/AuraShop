@@ -114,7 +114,7 @@
                   <tr style="border-bottom: 1px solid var(--border);">
                     <td style="padding: 12px 5px; font-weight: 700; color: var(--primary);">#${o.id}</td>
                     <td>${o.user_name}</td>
-                    <td>$${parseFloat(o.total).toFixed(2)}</td>
+                    <td>₹${parseFloat(o.total).toFixed(2)}</td>
                     <td><span class="order-status ${o.status}" style="font-size:0.7rem; padding: 2px 6px;">${o.status}</span></td>
                   </tr>
                 `).join('')}
@@ -139,7 +139,7 @@
             </div>
             <div class="admin-stat-card">
               <h4>Total Sales</h4>
-              <div class="val">$${stats.sales}</div>
+              <div class="val">₹${stats.sales}</div>
             </div>
           </div>
           
@@ -167,7 +167,7 @@
             <td style="padding: 10px 5px;"><img src="${p.image_url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
             <td style="font-weight:600;">${p.name}</td>
             <td>${p.category_name}</td>
-            <td>$${parseFloat(p.price).toFixed(2)}</td>
+            <td>₹${parseFloat(p.price).toFixed(2)}</td>
             <td>-${Math.round(p.discount)}%</td>
             <td>Qty: ${p.stock}</td>
             <td style="text-align: right;">
@@ -442,7 +442,7 @@
                 <div style="font-size:0.75rem; color:var(--text-muted);">${o.user_email}</div>
               </td>
               <td style="max-width:250px; font-size:0.8rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsSummary}">${itemsSummary}</td>
-              <td>$${parseFloat(o.total).toFixed(2)}</td>
+              <td>₹${parseFloat(o.total).toFixed(2)}</td>
               <td>${dateStr}</td>
               <td>
                 <select onchange="updateOrderStatus(${o.id}, this.value)" style="padding: 4px 8px; border-radius: var(--radius-sm); border-color: var(--border); font-size: 0.8rem; font-weight: 500;">

@@ -36,8 +36,8 @@ const Products = {
           </div>
           <div class="product-price-row">
             <div class="product-prices">
-              <span class="current-price">$${finalPrice}</span>
-              ${isDiscounted ? `<span class="original-price">$${parseFloat(product.price).toFixed(2)}</span>` : ''}
+              <span class="current-price">₹${finalPrice}</span>
+              ${isDiscounted ? `<span class="original-price">₹${parseFloat(product.price).toFixed(2)}</span>` : ''}
             </div>
             <button onclick="Products.handleAddToCart(${product.id})" class="btn-icon add-cart-btn" title="Add to Cart">
               <i class="fas fa-shopping-basket"></i>
@@ -150,15 +150,15 @@ const Products = {
             
             <div class="detail-price-row">
               <div style="display: flex; align-items: baseline; gap: 15px;">
-                <span class="price">$${finalPrice}</span>
-                ${isDiscounted ? `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 1.2rem;">$${parseFloat(product.price).toFixed(2)}</span>` : ''}
+                <span class="price">₹${finalPrice}</span>
+                ${isDiscounted ? `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 1.2rem;">₹${parseFloat(product.price).toFixed(2)}</span>` : ''}
                 ${isDiscounted ? `<span style="color: var(--danger); font-weight: 700; font-size: 0.9rem; background-color: #fee2e2; padding: 4px 8px; border-radius: 4px;">Save ${Math.round(product.discount)}%</span>` : ''}
               </div>
             </div>
 
             <div class="detail-meta">
               <div><strong>Availability:</strong> ${product.stock > 0 ? `<span style="color: var(--success); font-weight: 600;">In Stock (${product.stock} left)</span>` : '<span style="color: var(--danger); font-weight: 600;">Out of Stock</span>'}</div>
-              <div><strong>Standard Shipping:</strong> Free over $50. Arrives in 3-5 business days.</div>
+              <div><strong>Standard Shipping:</strong> Free over ₹500. Arrives in 3-5 business days.</div>
             </div>
 
             ${product.stock > 0 ? `
