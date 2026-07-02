@@ -168,6 +168,9 @@ button {
 }
 
 .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   border-radius: var(--radius-round);
@@ -175,6 +178,7 @@ button {
   color: var(--text-primary);
   border: 1px solid var(--border);
 }
+
 
 .btn-icon:hover {
   color: var(--primary);
