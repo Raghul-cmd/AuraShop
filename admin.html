@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,6 @@
   <link rel="stylesheet" href="css/responsive.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-
 <body>
 
   <!-- Sticky Header -->
@@ -28,22 +26,18 @@
   <!-- Admin Interface Layout -->
   <section class="section">
     <div class="container profile-layout">
-
+      
       <!-- Admin Sidebar Navigation -->
       <aside class="profile-sidebar">
         <div class="profile-avatar"><i class="fas fa-user-shield"></i></div>
         <h3>System Manager</h3>
         <p>Admin Level Control</p>
-
+        
         <nav class="profile-nav">
-          <a href="#" onclick="switchAdminTab('stats'); return false;" id="tab-stats" class="active"><i
-              class="fas fa-chart-bar"></i> Overview Stats</a>
-          <a href="#" onclick="switchAdminTab('products'); return false;" id="tab-products"><i class="fas fa-boxes"></i>
-            Manage Products</a>
-          <a href="#" onclick="switchAdminTab('categories'); return false;" id="tab-categories"><i
-              class="fas fa-tags"></i> Categories</a>
-          <a href="#" onclick="switchAdminTab('orders'); return false;" id="tab-orders"><i class="fas fa-receipt"></i>
-            Orders Queue</a>
+          <a href="#" onclick="switchAdminTab('stats'); return false;" id="tab-stats" class="active"><i class="fas fa-chart-bar"></i> Overview Stats</a>
+          <a href="#" onclick="switchAdminTab('products'); return false;" id="tab-products"><i class="fas fa-boxes"></i> Manage Products</a>
+          <a href="#" onclick="switchAdminTab('categories'); return false;" id="tab-categories"><i class="fas fa-tags"></i> Categories</a>
+          <a href="#" onclick="switchAdminTab('orders'); return false;" id="tab-orders"><i class="fas fa-receipt"></i> Orders Queue</a>
         </nav>
       </aside>
 
@@ -85,7 +79,7 @@
       if (activeLink) activeLink.classList.add('active');
 
       const content = document.getElementById('admin-main-content');
-
+      
       if (tabName === 'stats') {
         renderStatsTab(content);
       } else if (tabName === 'products') {
@@ -102,8 +96,8 @@
       container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
       try {
         const stats = await API.getAdminStats();
-
-        let recentOrdersHtml = stats.recentOrders.length === 0
+        
+        let recentOrdersHtml = stats.recentOrders.length === 0 
           ? '<p style="color:var(--text-secondary);">No recent orders placed.</p>'
           : `
             <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem;">
@@ -167,7 +161,7 @@
       try {
         const products = await API.getProducts();
         const categories = await API.getCategories();
-
+        
         let productsRows = products.map(p => `
           <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
             <td style="padding: 10px 5px;"><img src="${p.image_url}" style="width:40px; height:40px; object-fit:cover; border-radius:4px;"></td>
@@ -280,7 +274,7 @@
       document.getElementById('toggle-prod-form-btn').innerHTML = '<i class="fas fa-plus"></i> Add New Product';
       editProductId = null;
       document.getElementById('form-action-title').textContent = 'Add Product Specifications';
-
+      
       // Clear inputs
       document.getElementById('prod-name').value = '';
       document.getElementById('prod-price').value = '';
@@ -351,7 +345,7 @@
       container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
       try {
         const categories = await API.getCategories();
-
+        
         let catRows = categories.map(c => `
           <tr style="border-bottom: 1px solid var(--border); font-size: 0.9rem;">
             <td style="padding:12px 5px; font-weight:700; color:var(--primary);">#${c.id}</td>
@@ -433,7 +427,7 @@
       container.innerHTML = `<div class="spinner-wrapper"><div class="spinner"></div></div>`;
       try {
         const orders = await API.getAdminOrders();
-
+        
         let orderRows = orders.map(o => {
           const dateStr = new Date(o.created_at).toLocaleDateString('en-US', {
             month: 'short', day: 'numeric', year: '2-digit'
@@ -496,5 +490,4 @@
     }
   </script>
 </body>
-
 </html>
