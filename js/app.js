@@ -113,8 +113,8 @@ function renderHeaderFooter() {
             <p>Experience premium curation and sleek style. We deliver elegance directly to your doorstep.</p>
             <div class="social-links">
               <a href="mailto:svrcloudtech@gmail.com" class="btn-icon" title="Email Us"><i class="fas fa-envelope"></i></a>
+              <a href="https://instagram.com/aurashop" target="_blank" class="btn-icon" title="Instagram"><i class="fab fa-instagram"></i></a>
               <a href="https://wa.me/15552345678" target="_blank" class="btn-icon" title="WhatsApp Us"><i class="fab fa-whatsapp"></i></a>
-              <a href="tel:+15552345678" class="btn-icon" title="Call Us"><i class="fas fa-phone-alt"></i></a>
             </div>
           </div>
           <div class="footer-col">
