@@ -204,7 +204,7 @@ async function initDb() {
         ['Smart Sports Watch', 'Waterproof fitness tracker with heart rate and GPS tracking.', 199.99, 15, 4.7, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500', catMap['electronics'], 10],
         ['Classic Running Shoes', 'Ergonomic light-weight training sneakers.', 79.99, 20, 4.3, 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500', catMap['fashion'], 25],
         ['Minimalist Leather Jacket', '100% genuine dark brown retro leather jacket.', 149.99, 0, 4.6, 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500', catMap['fashion'], 8],
-        ['Drip Coffee Maker', 'Programmable 12-cup glass carafe coffee brewer.', 49.99, 5, 4.2, 'https://plus.unsplash.com/premium_photo-1670333242552-01eea0e36b7e?w=700&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8RHJpcCUyMENvZmZlZSUyME1ha2VyfGVufDB8fDB8fHww', catMap['home-living'], 12],
+        ['Drip Coffee Maker', 'Programmable 12-cup glass carafe coffee brewer.', 49.99, 5, 4.2, 'https://images.unsplash.com/photo-1517256064527-09c53b2d0bc6?w=500', catMap['home-living'], 12],
         ['Ergonomic Office Chair', 'Breathable mesh chair with lumber support and adjustable armrests.', 249.99, 25, 4.8, 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?w=500', catMap['home-living'], 5],
         ['Eco-Friendly Yoga Mat', 'Non-slip natural rubber alignment guide training mat.', 29.99, 0, 4.4, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500', catMap['sports-outdoors'], 30],
         ['Hardtail Mountain Bike', '21-speed adult trail bike with dual-disc brakes.', 499.99, 12, 4.7, 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=500', catMap['sports-outdoors'], 6]
